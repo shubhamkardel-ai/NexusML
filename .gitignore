@@ -1,0 +1,91 @@
+# ==============================
+# Python
+# ==============================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# ==============================
+# Virtual Environment
+# ==============================
+.venv/
+venv/
+env/
+ENV/
+
+# ==============================
+# Environment Variables & Secrets
+# ==============================
+.env
+.env.*
+!.env.example
+
+# ==============================
+# IDE
+# ==============================
+.idea/
+.vscode/
+*.iml
+
+# ==============================
+# Jupyter
+# ==============================
+.ipynb_checkpoints/
+
+# ==============================
+# Testing & Coverage
+# ==============================
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# ==============================
+# Build / Distribution
+# ==============================
+build/
+dist/
+*.egg-info/
+
+# ==============================
+# ML Artifacts
+# ==============================
+mlruns/
+mlartifacts/
+*.pkl
+*.pickle
+*.joblib
+*.onnx
+
+# ==============================
+# Model / Data Storage
+# ==============================
+models/*
+!models/.gitkeep
+
+data/raw/*
+!data/raw/.gitkeep
+
+data/processed/*
+!data/processed/.gitkeep
+
+# ==============================
+# Logs
+# ==============================
+*.log
+logs/
+
+# ==============================
+# OS Files
+# ==============================
+.DS_Store
+Thumbs.db
+
+# ==============================
+# Temporary Files
+# ==============================
+*.tmp
+*.temp
+*.swp
