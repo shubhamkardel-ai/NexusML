@@ -1,1 +1,9 @@
 # Core application dependencies
+
+# Data & Machine Learning
+pandas
+scikit-learn
+joblib
+
+# MLOps
+mlflow
