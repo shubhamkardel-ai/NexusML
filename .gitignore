@@ -54,6 +54,7 @@ dist/
 # ==============================
 mlruns/
 mlartifacts/
+mlflow.db
 *.pkl
 *.pickle
 *.joblib

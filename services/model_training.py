@@ -2,6 +2,8 @@ import json
 from pathlib import Path
 
 import joblib
+import mlflow
+import mlflow.sklearn
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
@@ -27,9 +29,11 @@ FEATURE_COLUMNS = [
     "contract_length",
 ]
 
+EXPERIMENT_NAME = "NexusML-Customer-Churn"
+
 
 def train_model():
-    """Train and evaluate the customer churn model."""
+    """Train, evaluate, and track the customer churn model."""
 
     data = validate_dataset()
 
@@ -49,41 +53,76 @@ def train_model():
         random_state=42,
     )
 
-    model.fit(X_train, y_train)
+    mlflow.set_tracking_uri("sqlite:///./mlflow.db")
+    mlflow.set_experiment(EXPERIMENT_NAME)
 
-    predictions = model.predict(X_test)
+    with mlflow.start_run():
+        model.fit(X_train, y_train)
 
-    metrics = {
-        "accuracy": round(accuracy_score(y_test, predictions), 4),
-        "precision": round(
-            precision_score(y_test, predictions, zero_division=0),
-            4,
-        ),
-        "recall": round(
-            recall_score(y_test, predictions, zero_division=0),
-            4,
-        ),
-        "f1_score": round(
-            f1_score(y_test, predictions, zero_division=0),
-            4,
-        ),
-    }
+        predictions = model.predict(X_test)
 
-    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+        metrics = {
+            "accuracy": round(
+                accuracy_score(y_test, predictions),
+                4,
+            ),
+            "precision": round(
+                precision_score(
+                    y_test,
+                    predictions,
+                    zero_division=0,
+                ),
+                4,
+            ),
+            "recall": round(
+                recall_score(
+                    y_test,
+                    predictions,
+                    zero_division=0,
+                ),
+                4,
+            ),
+            "f1_score": round(
+                f1_score(
+                    y_test,
+                    predictions,
+                    zero_division=0,
+                ),
+                4,
+            ),
+        }
 
-    joblib.dump(model, MODEL_PATH)
+        mlflow.log_param("model_type", "LogisticRegression")
+        mlflow.log_param("max_iter", 1000)
+        mlflow.log_param("random_state", 42)
+        mlflow.log_param("test_size", 0.2)
+        mlflow.log_param("feature_count", len(FEATURE_COLUMNS))
 
-    with METRICS_PATH.open("w", encoding="utf-8") as file:
-        json.dump(metrics, file, indent=4)
+        mlflow.log_metrics(metrics)
 
-    return metrics
+        MODEL_DIR.mkdir(parents=True, exist_ok=True)
+
+        joblib.dump(model, MODEL_PATH)
+
+        with METRICS_PATH.open("w", encoding="utf-8") as file:
+            json.dump(metrics, file, indent=4)
+
+        mlflow.log_artifact(str(MODEL_PATH), artifact_path="model")
+        mlflow.log_artifact(
+            str(METRICS_PATH),
+            artifact_path="evaluation",
+        )
+
+        run_id = mlflow.active_run().info.run_id
+
+    return metrics, run_id
 
 
 def main():
-    metrics = train_model()
+    metrics, run_id = train_model()
 
     print("=" * 60)
-    print("NexusML — Model Training")
+    print("NexusML — Model Training with MLflow")
     print("=" * 60)
 
     for metric, value in metrics.items():
@@ -91,6 +130,8 @@ def main():
 
     print(f"Model saved: {MODEL_PATH}")
     print(f"Metrics saved: {METRICS_PATH}")
+    print(f"MLflow experiment: {EXPERIMENT_NAME}")
+    print(f"MLflow run ID: {run_id}")
 
     print("=" * 60)
 
