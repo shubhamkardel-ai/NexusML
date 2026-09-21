@@ -107,7 +107,12 @@ def train_model():
         with METRICS_PATH.open("w", encoding="utf-8") as file:
             json.dump(metrics, file, indent=4)
 
-        mlflow.log_artifact(str(MODEL_PATH), artifact_path="model")
+        mlflow.sklearn.log_model(
+            sk_model=model,
+            name="model",
+            registered_model_name="NexusML-Churn-Model",
+        )
+
         mlflow.log_artifact(
             str(METRICS_PATH),
             artifact_path="evaluation",
