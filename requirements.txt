@@ -12,3 +12,6 @@ mlflow
 fastapi
 uvicorn
 pydantic
+
+# Database
+sqlalchemy
