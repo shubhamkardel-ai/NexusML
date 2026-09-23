@@ -4,6 +4,10 @@ from pydantic import BaseModel, Field
 from services.model_service import load_model
 from services.prediction_logger import initialize_database, log_prediction
 
+from services.monitoring_service import (
+    get_model_metrics,
+    get_prediction_metrics,
+)
 
 MODEL_NAME = "NexusML-Churn-Model"
 MODEL_VERSION = "1"
@@ -44,6 +48,17 @@ def health():
         "model_version": MODEL_VERSION,
     }
 
+@app.get("/monitoring/metrics")
+def monitoring_metrics():
+    """Return production prediction metrics."""
+
+    return get_prediction_metrics()
+
+@app.get("/monitoring/models")
+def monitoring_models():
+    """Return production metrics grouped by model version."""
+
+    return get_model_metrics()
 
 @app.post("/predict")
 def predict(request: ChurnRequest):
