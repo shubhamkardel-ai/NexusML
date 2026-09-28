@@ -9,6 +9,11 @@ from services.monitoring_service import (
     get_prediction_metrics,
 )
 
+from services.drift_detection import (
+    detect_drift,
+    get_production_data,
+)
+
 MODEL_NAME = "NexusML-Churn-Model"
 MODEL_VERSION = "1"
 
@@ -59,6 +64,20 @@ def monitoring_models():
     """Return production metrics grouped by model version."""
 
     return get_model_metrics()
+
+@app.get("/monitoring/drift")
+def monitoring_drift():
+    """Return the current production feature drift report."""
+
+    production_df = get_production_data()
+
+    if production_df.empty:
+        return {
+            "status": "insufficient_data",
+            "production_samples": 0,
+        }
+
+    return detect_drift(production_df)
 
 @app.post("/predict")
 def predict(request: ChurnRequest):
