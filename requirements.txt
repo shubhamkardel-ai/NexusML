@@ -15,3 +15,5 @@ pydantic
 
 # Database
 sqlalchemy
+
+streamlit
