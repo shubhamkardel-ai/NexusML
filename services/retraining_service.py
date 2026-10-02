@@ -11,6 +11,7 @@ from services.model_evaluation import (
     validate_candidate,
 )
 
+from services.model_registry import promote_model
 
 DATA_PATH = Path("data/raw/customer_churn.csv")
 
@@ -189,15 +190,41 @@ def run_retraining():
 
         if validation["approved"]:
 
-            mlflow.sklearn.log_model(
+            print("\nCandidate approved.")
+            print("Registering candidate model...")
+
+            model_info = mlflow.sklearn.log_model(
                 sk_model=candidate_model,
                 name="candidate_model",
                 registered_model_name=REGISTERED_MODEL_NAME,
             )
 
+            registered_version = model_info.registered_model_version
+
+            print(
+                f"Candidate registered as version "
+                f"{registered_version}."
+            )
+
+            print("Promoting candidate to champion...")
+
+            promotion_result = promote_model(
+                registered_version
+            )
+
+            print(
+                f"Production model updated: "
+                f"version {registered_version}"
+            )
+
             status = "approved"
 
         else:
+
+            print("\nCandidate rejected.")
+            print("Production model remains unchanged.")
+
+            promotion_result = None
 
             status = "rejected"
 
@@ -211,6 +238,7 @@ def run_retraining():
         "current_metrics": current_metrics,
         "candidate_metrics": candidate_metrics,
         "validation": validation,
+        "promotion": promotion_result,
     }
 
 

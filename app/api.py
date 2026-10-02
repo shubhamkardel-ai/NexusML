@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
-from services.model_service import load_model
+from services.model_service import (
+    load_model,
+    get_production_model_version,
+)
 from services.prediction_logger import initialize_database, log_prediction
 
 from services.monitoring_service import (
@@ -15,7 +18,7 @@ from services.drift_detection import (
 )
 
 MODEL_NAME = "NexusML-Churn-Model"
-MODEL_VERSION = "1"
+PRODUCTION_ALIAS = "champion"
 
 
 app = FastAPI(
@@ -45,12 +48,13 @@ class ChurnRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    """Return API health status."""
+    production_version = get_production_model_version()
 
     return {
         "status": "healthy",
         "model": MODEL_NAME,
-        "model_version": MODEL_VERSION,
+        "model_alias": PRODUCTION_ALIAS,
+        "model_version": production_version,
     }
 
 @app.get("/monitoring/metrics")
@@ -98,7 +102,7 @@ def predict(request: ChurnRequest):
 
     log_prediction(
         model_name=MODEL_NAME,
-        model_version=MODEL_VERSION,
+        model_version=get_production_model_version(),
         age=request.age,
         tenure_months=request.tenure_months,
         monthly_charges=request.monthly_charges,
@@ -113,5 +117,6 @@ def predict(request: ChurnRequest):
         "prediction": prediction,
         "churn_probability": round(probability, 4),
         "model": MODEL_NAME,
-        "model_version": MODEL_VERSION,
+        "model_alias": PRODUCTION_ALIAS,
+        "model_version": get_production_model_version(),
     }

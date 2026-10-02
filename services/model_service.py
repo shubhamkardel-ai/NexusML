@@ -2,32 +2,36 @@ import mlflow
 
 
 MODEL_NAME = "NexusML-Churn-Model"
-MODEL_VERSION = "1"
-
+PRODUCTION_ALIAS = "champion"
 MLFLOW_TRACKING_URI = "sqlite:///./mlflow.db"
 
 
 def load_model():
-    """Load the registered production model from MLflow."""
-
+    """
+    Load the production model using the MLflow champion alias.
+    """
     mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 
-    model_uri = f"models:/{MODEL_NAME}/{MODEL_VERSION}"
+    model_uri = f"models:/{MODEL_NAME}@{PRODUCTION_ALIAS}"
 
     model = mlflow.sklearn.load_model(model_uri)
 
     return model
 
 
-if __name__ == "__main__":
-    print("=" * 60)
-    print("NexusML — Model Loading Test")
-    print("=" * 60)
+def get_production_model_version():
+    """
+    Get the version currently assigned to the production alias.
+    """
+    from mlflow import MlflowClient
 
-    model = load_model()
+    client = MlflowClient(
+        tracking_uri=MLFLOW_TRACKING_URI
+    )
 
-    print(f"Model: {MODEL_NAME}")
-    print(f"Version: {MODEL_VERSION}")
-    print(f"Model type: {type(model).__name__}")
-    print("Status: Model loaded successfully")
-    print("=" * 60)
+    model_version = client.get_model_version_by_alias(
+        MODEL_NAME,
+        PRODUCTION_ALIAS,
+    )
+
+    return str(model_version.version)
