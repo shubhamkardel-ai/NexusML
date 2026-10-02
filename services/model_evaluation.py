@@ -3,6 +3,7 @@ from pathlib import Path
 import mlflow
 import joblib
 import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
@@ -124,11 +125,14 @@ def train_candidate_model(
     X_train,
     y_train,
 ):
-    """Train a candidate model using the training dataset."""
+    """Train a candidate Random Forest model."""
 
-    candidate_model = LogisticRegression(
-        max_iter=1000,
+    candidate_model = RandomForestClassifier(
+        n_estimators=200,
+        max_depth=8,
+        min_samples_split=5,
         random_state=42,
+        n_jobs=-1,
     )
 
     candidate_model.fit(
