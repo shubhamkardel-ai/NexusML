@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field
 
 from services.logging_config import get_logger
 
+from services.copilot_llm import ask_copilot
+
 from services.model_service import (
     load_model,
     get_production_model_version,
@@ -49,6 +51,29 @@ class ChurnRequest(BaseModel):
     support_tickets: int = Field(..., ge=0)
     usage_hours: float = Field(..., ge=0)
     contract_length: int = Field(..., ge=0)
+
+class CopilotRequest(BaseModel):
+    question: str = Field(..., min_length=3, max_length=1000)
+
+@app.post("/copilot")
+def copilot(request: CopilotRequest):
+    logger.info(
+        "Copilot question received | question_length=%s",
+        len(request.question),
+    )
+
+    answer = ask_copilot(request.question)
+
+    logger.info(
+        "Copilot response generated | answer_length=%s",
+        len(answer),
+    )
+
+    return {
+        "question": request.question,
+        "answer": answer,
+        "model": "NexusML-Copilot",
+    }
 
 
 @app.get("/health")

@@ -17,3 +17,6 @@ pydantic
 sqlalchemy
 
 streamlit
+
+groq
+python-dotenv
