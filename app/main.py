@@ -1,24 +1,23 @@
-from config.settings import settings
+from services.logging_config import configure_logging, get_logger
 
 
-def health_check() -> dict:
-    """Return the current health status of NexusML."""
+configure_logging()
+
+logger = get_logger("NexusML")
+
+
+def health_check():
+    logger.info("NexusML application health check executed")
+
     return {
         "status": "healthy",
-        "application": settings.APP_NAME,
-        "environment": settings.APP_ENV,
-        "debug": settings.DEBUG,
+        "application": "NexusML",
+        "environment": "development",
+        "debug": True,
     }
 
 
 if __name__ == "__main__":
     result = health_check()
 
-    print("=" * 50)
-    print("NexusML Health Check")
-    print("=" * 50)
-
-    for key, value in result.items():
-        print(f"{key}: {value}")
-
-    print("=" * 50)
+    print(result)

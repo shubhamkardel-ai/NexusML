@@ -1,5 +1,9 @@
-from fastapi import FastAPI
+import time
+
+from fastapi import FastAPI, Request
 from pydantic import BaseModel, Field
+
+from services.logging_config import get_logger
 
 from services.model_service import (
     load_model,
@@ -20,6 +24,7 @@ from services.drift_detection import (
 MODEL_NAME = "NexusML-Churn-Model"
 PRODUCTION_ALIAS = "champion"
 
+logger = get_logger("NexusML.API")
 
 app = FastAPI(
     title="NexusML Prediction API",
@@ -56,6 +61,30 @@ def health():
         "model_alias": PRODUCTION_ALIAS,
         "model_version": production_version,
     }
+
+@app.get("/ready")
+def readiness():
+    """
+    Check whether NexusML is ready to serve predictions.
+    """
+
+    try:
+        production_version = get_production_model_version()
+
+        return {
+            "status": "ready",
+            "model": MODEL_NAME,
+            "model_alias": PRODUCTION_ALIAS,
+            "model_version": production_version,
+        }
+
+    except Exception as error:
+        logger.exception("Readiness check failed")
+
+        return {
+            "status": "not_ready",
+            "reason": str(error),
+        }
 
 @app.get("/monitoring/metrics")
 def monitoring_metrics():
@@ -99,6 +128,14 @@ def predict(request: ChurnRequest):
     prediction = int(model.predict(features)[0])
 
     probability = float(model.predict_proba(features)[0][1])
+
+    logger.info(
+        "Prediction generated | model=%s | version=%s | prediction=%s | probability=%.4f",
+        MODEL_NAME,
+        get_production_model_version(),
+        prediction,
+        probability,
+    )
 
     log_prediction(
         model_name=MODEL_NAME,
