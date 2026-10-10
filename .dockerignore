@@ -1,0 +1,16 @@
+.venv/
+.git/
+.gitignore
+.idea/
+__pycache__/
+*.py[cod]
+.env
+
+# Ignore MLflow UI-generated and cache data
+mlartifacts/
+
+# Keep mlflow.db and mlruns available for the local registry-backed API.
+# Exclude only temporary caches and local logs.
+logs/
+.pytest_cache/
+.coverage
